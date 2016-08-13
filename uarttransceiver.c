@@ -1,5 +1,6 @@
 #include "simpletools.h"
 #include "fdserial.h"
+#include "serialmessage.h"
 void run_read_master_cog();
 int *read_master_cog;
 volatile fdserial *fd_device;
@@ -7,7 +8,7 @@ cogmain_counter = 0;
 volatile int command = -1;
 volatile int new_message = 0;
 volatile int message_buffer[64];
-
+volatile testmessagecounter = 0;
 volatile int checksum_failed_counter = 0;
 int main()
 {
@@ -15,26 +16,29 @@ int main()
   read_master_cog = cog_run(run_read_master_cog,128);
   while(1)
   {
-    printf("checksum_failed_counter: %d\n",checksum_failed_counter);
+    
     if(new_message == 1)
     {
+      printf("checksum_failed_counter: %d\n",checksum_failed_counter);
       new_message = 0;
-      printf("Got Command: %0x\n");      
+      printf("Got Command: %0x\n",command);      
     }   
     cogmain_counter++;
     if(cogmain_counter > 20) { cogmain_counter = 0; }
     int out_buffer[12];
     out_buffer[0] = 0xAB;
-    out_buffer[1] = 0x15;  //command
+    out_buffer[1] = 0x14;  //command
     out_buffer[2] = 8; //length
-    out_buffer[3] = 9;
-    out_buffer[4] = 10;
-     out_buffer[5] = 11;
-    out_buffer[6] = 12; 
-     out_buffer[7] = 13;
-    out_buffer[8] = 14; 
-     out_buffer[9] = 15;
-    out_buffer[10] = 16; 
+    out_buffer[3] = testmessagecounter;
+    out_buffer[4] = testmessagecounter;
+     out_buffer[5] = testmessagecounter;
+    out_buffer[6] = testmessagecounter; 
+     out_buffer[7] = testmessagecounter;
+    out_buffer[8] = testmessagecounter; 
+     out_buffer[9] = testmessagecounter;
+    out_buffer[10] = testmessagecounter; 
+    testmessagecounter++;
+    if(testmessagecounter > 255) {testmessagecounter = 0; }
     int checksum = 0;
     for(int i = 3; i < 11; i++)
     {
@@ -44,14 +48,15 @@ int main()
     for(int i = 0; i < 12; i++)
     {
        fdserial_txChar(fd_device,out_buffer[i]);
-    }      
-    //dprint(fd_device,"%s",out_buffer);      
-    printf("Sent: ");
+    }
+    fdserial_txChar(fd_device,'A');           
+    /*printf("Sent: ");
     for(int i = 0; i < 12; i++)
     {
       printf("b: %d",out_buffer[i]);
     }   
     printf("\n");   
+    */
     //printf("M: %d\n",cogmain_counter);
     pause(10);
   }    
@@ -82,7 +87,7 @@ void run_read_master_cog()
       if(c == 0x14)
       {
         new_message = 1;
-        command = c;;
+        command = c;
       }  
       else if(c == 0x15)
       {
