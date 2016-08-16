@@ -8,4 +8,4 @@ serialmessage.h
 >-fno-exceptions
 >defs::-std=c99
 >-lm
->BOARD::ACTIVITYBOARD
+>BOARD::GENERIC
