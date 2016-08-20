@@ -84,14 +84,15 @@ int decode_TestMessageCommandSerial(int* inpacket,int length,int checksum,char* 
 	*value8=inpacket[7];
 	return 1;
 }
-int decode_Configure_DIO_PortASerial(int* inpacket,int length,int checksum,char* Pin1_Mode,char* Pin2_Mode,char* Pin3_Mode,char* Pin4_Mode,char* Pin5_Mode,char* Pin6_Mode,char* Pin7_Mode,char* Pin8_Mode)
+int decode_Configure_DIO_PortASerial(int* inpacket,int length,int checksum,int* computed_checksum,char* Pin1_Mode,char* Pin2_Mode,char* Pin3_Mode,char* Pin4_Mode,char* Pin5_Mode,char* Pin6_Mode,char* Pin7_Mode,char* Pin8_Mode)
 {
-	int computed_checksum = 0;
+	int comp_checksum = 0;
 	for(int i = 0; i < length; i++)
 	{
-		computed_checksum ^= inpacket[i];
+		comp_checksum ^= inpacket[i];
 	}
-	if(computed_checksum != checksum) { return -1; }
+  *computed_checksum = comp_checksum;
+	if(comp_checksum != checksum) { return -1; }
 	*Pin1_Mode=inpacket[0];
 	*Pin2_Mode=inpacket[1];
 	*Pin3_Mode=inpacket[2];

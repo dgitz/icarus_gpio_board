@@ -76,6 +76,8 @@ volatile char SubSystem = ROBOT_CONTROLLER;
 volatile char Component = GPIO_NODE;
 volatile char Diagnostic_Type = SOFTWARE;
 
+volatile int temp1;
+volatile int temp2;
 
 Port_Config DIO_PortA;  
 Port_Config DIO_PortB; 
@@ -83,13 +85,14 @@ Port_Config ANA_PortA;
 Port_Config ANA_PortB; 
 void run_veryfastrate_code() //1000 Hz
 {
- if((checksum_failed_counter == 0) && (checksum_passed_counter == 0)) {message_dropped_ratio = 0.0; }
+  if((checksum_failed_counter == 0) && (checksum_passed_counter == 0)) {message_dropped_ratio = 0.0; }
   else
   {
      message_dropped_ratio= (double)((double)checksum_failed_counter/((double)checksum_passed_counter+(double)checksum_failed_counter));
   } 
   if(new_message == 1)
   {
+    
     new_message = 0;
     if(message_type==SERIAL_Configure_DIO_PortA_ID)
     {
@@ -118,28 +121,59 @@ void run_fastrate_code() //100 Hz
 }  
 void run_mediumrate_code() //10 Hz
 {
+  
   {
     int out_buffer[12];
     int length[1];
+    
     int status = encode_Get_ANA_PortASerial(out_buffer,length,ANA_PortA.Pin1_Value,ANA_PortA.Pin2_Value,ANA_PortA.Pin3_Value,ANA_PortA.Pin4_Value);
+    //printf("1: %d\n",length[0]);
     for(int i = 0; i < length[0]; i++)
     {
        fdserial_txChar(fd_device,out_buffer[i]);
     }
   }
-  waitcnt(2000*(CLKFREQ/1000000)+CNT);
+  waitcnt(4000*(CLKFREQ/1000000)+CNT);
   {
     int out_buffer[12];
     int length[1];
     int status = encode_Get_ANA_PortBSerial(out_buffer,length,ANA_PortB.Pin1_Value,ANA_PortB.Pin2_Value,ANA_PortB.Pin3_Value,ANA_PortB.Pin4_Value);
+      for(int i = 0; i < length[0]; i++)
+    {
+       fdserial_txChar(fd_device,out_buffer[i]);
+    }
+  }  
+  waitcnt(4000*(CLKFREQ/1000000)+CNT);
+  {
+    int out_buffer[12];
+    int length[1];
+    int status = encode_Get_DIO_PortASerial(out_buffer,length,
+    DIO_PortA.Pin1_Value,DIO_PortA.Pin2_Value,DIO_PortA.Pin3_Value,DIO_PortA.Pin4_Value,
+    DIO_PortA.Pin5_Value,DIO_PortA.Pin6_Value,DIO_PortA.Pin7_Value,DIO_PortA.Pin8_Value);
+    
     for(int i = 0; i < length[0]; i++)
     {
        fdserial_txChar(fd_device,out_buffer[i]);
     }
-  }    
+  }  
+  waitcnt(4000*(CLKFREQ/1000000)+CNT);
+  {
+    int out_buffer[12];
+    int length[1];
+    int status = encode_Get_DIO_PortBSerial(out_buffer,length,
+    DIO_PortB.Pin1_Value,DIO_PortB.Pin2_Value,DIO_PortB.Pin3_Value,DIO_PortB.Pin4_Value,
+    DIO_PortB.Pin5_Value,DIO_PortB.Pin6_Value,DIO_PortB.Pin7_Value,DIO_PortB.Pin8_Value);
+    for(int i = 0; i < length[0]; i++)
+    {
+       fdserial_txChar(fd_device,out_buffer[i]);
+    }
+  }  
+  waitcnt(4000*(CLKFREQ/1000000)+CNT);
+  
 }  
 void run_slowrate_code() //1 Hz
 {
+  printf("Failed Checksum: %d Passed Checksum: %d\n",checksum_failed_counter,checksum_passed_counter);
   int out_buffer[12];
   int length[1];
   Diagnostic_Type = COMMUNICATIONS;
@@ -166,13 +200,14 @@ void run_slowrate_code() //1 Hz
   {
      fdserial_txChar(fd_device,out_buffer[i]);
   }
+ 
 }  
 int main()
 {
   initialized = 0;
   Initialize_Ports();
    fd_device = fdserial_open(26, 27, 0, 115200);
-  read_master_cog = cog_run(run_read_master_cog,256);
+  read_master_cog = cog_run(run_read_master_cog,512);
   initialized = 1;
   while(1)
   { 
@@ -192,7 +227,9 @@ int main()
     }
     if(mediumrate_counter >= 100) //10 Hz
     {
+      //printf("m: %d v: %d\n",DIO_PortA.Pin1_Mode,DIO_PortA.Pin1_Value);
       mediumrate_counter = 0;
+      // printf("Executing: %d\n",slowrate_counter);
       run_mediumrate_code();
     }
     if(slowrate_counter >= 1000) //1 Hz
@@ -224,14 +261,14 @@ void run_read_master_cog()
     int status =0;
     if(c == SERIAL_Configure_DIO_PortA_ID)
     {
-      
       message_type = c;
       char value1,value2,value3,value4,value5,value6,value7,value8;
-      status = decode_Configure_DIO_PortASerial(message_buffer,message_length,message_checksum,&value1,&value2,&value3,&value4,&value5,&value6,&value7,&value8);
+      temp1 = message_checksum;
+      status = decode_Configure_DIO_PortASerial(message_buffer,message_length,message_checksum,&computed_checksum,&value1,&value2,&value3,&value4,&value5,&value6,&value7,&value8);
+      temp2 = computed_checksum;
       if(status == 1)
       {
         checksum_passed_counter++;
-        
         DIO_PortA.Pin1_Mode = value1;
         DIO_PortA.Pin2_Mode = value2;
         DIO_PortA.Pin3_Mode = value3;
@@ -241,6 +278,33 @@ void run_read_master_cog()
         DIO_PortA.Pin7_Mode = value7;
         DIO_PortA.Pin8_Mode = value8;
         new_message = 1;
+      }
+      if(status < 0)  
+      {
+        checksum_failed_counter++;
+      }
+    }
+    else if(c == SERIAL_Configure_DIO_PortB_ID)
+    {
+      message_type = c;
+      char value1,value2,value3,value4,value5,value6,value7,value8;
+      status = decode_Configure_DIO_PortBSerial(message_buffer,message_length,message_checksum,&value1,&value2,&value3,&value4,&value5,&value6,&value7,&value8);
+      if(status == 1)
+      {
+        checksum_passed_counter++;
+        DIO_PortB.Pin1_Mode = value1;
+        DIO_PortB.Pin2_Mode = value2;
+        DIO_PortB.Pin3_Mode = value3;
+        DIO_PortB.Pin4_Mode = value4;
+        DIO_PortB.Pin5_Mode = value5;
+        DIO_PortB.Pin6_Mode = value6;
+        DIO_PortB.Pin7_Mode = value7;
+        DIO_PortB.Pin8_Mode = value8;
+        new_message = 1;
+      }
+      if(status < 0)  
+      {
+        checksum_failed_counter++;
       }
     }
     else if(c == SERIAL_GPIO_Board_Mode_ID)
@@ -253,6 +317,10 @@ void run_read_master_cog()
         checksum_passed_counter++;
         new_message = 1;
         gpio_board_command = value1;
+      }
+      if(status < 0)  
+      {
+        checksum_failed_counter++;
       }
     }
     else if(c == SERIAL_Set_DIO_PortA_ID)
@@ -274,16 +342,18 @@ void run_read_master_cog()
         if((DIO_PortA.Pin8_Mode == PINMODE_DIGITAL_OUTPUT) || (DIO_PortA.Pin8_Mode == PINMODE_PWM_OUTPUT)) {DIO_PortA.Pin8_Value=value8; }
         new_message = 1;
       }
+      if(status < 0)  
+      {
+        checksum_failed_counter++;
+      }
     }
-    if(status < 0)
-    {
-      checksum_failed_counter++;
-    } 
+     
   }
   
 }          
 void Initialize_Ports()
 {
+  printf("\n\n\n\n\nInitializing\n\n\n");
   DIO_PortA.Pin1_Mode = PINMODE_UNDEFINED;
   DIO_PortA.Pin2_Mode = PINMODE_UNDEFINED;
   DIO_PortA.Pin3_Mode = PINMODE_UNDEFINED;
@@ -353,6 +423,8 @@ char Update_Ports()
   ANA_PortB.Pin4_Value = readADC(7, ADC_DATA, ADC_CLK, ADC_CS);
   //The do DIO PortA
   DIO_PortA = update_dio_port_config(DIO_PortA);
+  printf("m1: %dv1: %d\n",DIO_PortA.Pin1_Mode,DIO_PortA.Pin1_Value);
+  //printf("m: %d v: %d\n",DIO_PortA.Pin1_Mode,DIO_PortA.Pin1_Value);
   DIO_PortB = update_dio_port_config(DIO_PortB);  
   
   return 1;    
@@ -360,7 +432,7 @@ char Update_Ports()
  
 Port_Config update_dio_port_config(Port_Config PC)
 {
-   if(PC.Pin1_Mode == PINMODE_DIGITAL_OUTPUT)
+  if(PC.Pin1_Mode == PINMODE_DIGITAL_OUTPUT)
   {
     if(PC.Pin1_Value > 0) {high(PC.Pin1_Number); }
     else{low(PC.Pin1_Number); }
@@ -369,6 +441,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   {
     servo_angle(PC.Pin1_Number,PC.Pin1_Value*1800/256);
   }
+  else if(PC.Pin1_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin1_Value = input(PC.Pin1_Number);
+  }    
   
   if(PC.Pin2_Mode == PINMODE_DIGITAL_OUTPUT)
   {
@@ -378,6 +454,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   else if(PC.Pin2_Mode == PINMODE_PWM_OUTPUT)
   {
     servo_angle(PC.Pin2_Number,PC.Pin2_Value*1800/256);
+  }
+  else if(PC.Pin2_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin2_Value = input(PC.Pin2_Number);
   }
   
   if(PC.Pin3_Mode == PINMODE_DIGITAL_OUTPUT)
@@ -389,15 +469,9 @@ Port_Config update_dio_port_config(Port_Config PC)
   {
     servo_angle(PC.Pin3_Number,PC.Pin3_Value*1800/256);
   }
-  
-  if(PC.Pin4_Mode == PINMODE_DIGITAL_OUTPUT)
+  else if(PC.Pin3_Mode == PINMODE_DIGITAL_INPUT)
   {
-    if(PC.Pin4_Value > 0) {high(PC.Pin4_Number); }
-    else{low(PC.Pin4_Number); }
-  }
-  else if(PC.Pin4_Mode == PINMODE_PWM_OUTPUT)
-  {
-    servo_angle(PC.Pin4_Number,PC.Pin4_Value*1800/256);
+    PC.Pin3_Value = input(PC.Pin3_Number);
   }
   
   if(PC.Pin4_Mode == PINMODE_DIGITAL_OUTPUT)
@@ -408,6 +482,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   else if(PC.Pin4_Mode == PINMODE_PWM_OUTPUT)
   {
     servo_angle(PC.Pin4_Number,PC.Pin4_Value*1800/256);
+  }
+  else if(PC.Pin4_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin4_Value = input(PC.Pin4_Number);
   }
   
   if(PC.Pin5_Mode == PINMODE_DIGITAL_OUTPUT)
@@ -419,6 +497,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   {
     servo_angle(PC.Pin5_Number,PC.Pin5_Value*1800/256);
   }
+  else if(PC.Pin5_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin5_Value = input(PC.Pin5_Number);
+  }
   
   if(PC.Pin6_Mode == PINMODE_DIGITAL_OUTPUT)
   {
@@ -428,6 +510,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   else if(PC.Pin6_Mode == PINMODE_PWM_OUTPUT)
   {
     servo_angle(PC.Pin6_Number,PC.Pin6_Value*1800/256);
+  }
+  else if(PC.Pin6_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin6_Value = input(PC.Pin6_Number);
   }
   
   if(PC.Pin7_Mode == PINMODE_DIGITAL_OUTPUT)
@@ -439,6 +525,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   {
     servo_angle(PC.Pin7_Number,PC.Pin7_Value*1800/256);
   }
+  else if(PC.Pin7_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin7_Value = input(PC.Pin7_Number);
+  }
   
   if(PC.Pin8_Mode == PINMODE_DIGITAL_OUTPUT)
   {
@@ -448,6 +538,10 @@ Port_Config update_dio_port_config(Port_Config PC)
   else if(PC.Pin8_Mode == PINMODE_PWM_OUTPUT)
   {
     servo_angle(PC.Pin8_Number,PC.Pin8_Value*1800/256);
+  }
+  else if(PC.Pin8_Mode == PINMODE_DIGITAL_INPUT)
+  {
+    PC.Pin8_Value = input(PC.Pin8_Number);
   }
   return PC;
   

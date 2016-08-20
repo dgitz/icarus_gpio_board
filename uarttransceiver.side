@@ -2,6 +2,7 @@ uarttransceiver.c
 serialmessage.c
 serialmessage.h
 mcp3208.h
+Definitions.h
 >compiler=C
 >memtype=lmm main ram
 >optimize=-Os
