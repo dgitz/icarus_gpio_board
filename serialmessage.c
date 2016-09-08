@@ -1,7 +1,43 @@
 /***************AUTO-GENERATED.  DO NOT EDIT********************/
-/***Created on:2016-08-17 20:37:30.944471***/
+/***Created on:2016-08-25 17:19:30.450613***/
 /***Target: Parallax Propeller ***/
 #include "serialmessage.h"
+int encode_FirmwareVersionSerial(int* outbuffer,int* length,char MajorRelease,char MinorRelease,char BuildNumber)
+{
+	int byte_counter=0;
+	outbuffer[byte_counter++] = 0xAB;
+	outbuffer[byte_counter++] = 0x10;
+	outbuffer[byte_counter++] = 8;
+	outbuffer[byte_counter++] = MajorRelease;
+	outbuffer[byte_counter++] = MinorRelease;
+	outbuffer[byte_counter++] = BuildNumber;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	int checksum = 0;
+	for(int i = 3; i < (3+8);i++)
+	{
+		checksum ^= outbuffer[i];
+	}
+	outbuffer[byte_counter] = checksum;
+	length[0] = 3+8+1;
+	return 1;
+}
+int decode_FirmwareVersionSerial(int* inpacket,int length,int checksum,char* MajorRelease,char* MinorRelease,char* BuildNumber)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*MajorRelease=inpacket[0];
+	*MinorRelease=inpacket[1];
+	*BuildNumber=inpacket[2];
+	return 1;
+}
 int encode_DiagnosticSerial(int* outbuffer,int* length,char System,char SubSystem,char Component,char Diagnostic_Type,char Level,char Diagnostic_Message)
 {
 	int byte_counter=0;
@@ -84,15 +120,14 @@ int decode_TestMessageCommandSerial(int* inpacket,int length,int checksum,char* 
 	*value8=inpacket[7];
 	return 1;
 }
-int decode_Configure_DIO_PortASerial(int* inpacket,int length,int checksum,int* computed_checksum,char* Pin1_Mode,char* Pin2_Mode,char* Pin3_Mode,char* Pin4_Mode,char* Pin5_Mode,char* Pin6_Mode,char* Pin7_Mode,char* Pin8_Mode)
+int decode_Configure_DIO_PortASerial(int* inpacket,int length,int checksum,char* Pin1_Mode,char* Pin2_Mode,char* Pin3_Mode,char* Pin4_Mode,char* Pin5_Mode,char* Pin6_Mode,char* Pin7_Mode,char* Pin8_Mode)
 {
-	int comp_checksum = 0;
+	int computed_checksum = 0;
 	for(int i = 0; i < length; i++)
 	{
-		comp_checksum ^= inpacket[i];
+		computed_checksum ^= inpacket[i];
 	}
-  *computed_checksum = comp_checksum;
-	if(comp_checksum != checksum) { return -1; }
+	if(computed_checksum != checksum) { return -1; }
 	*Pin1_Mode=inpacket[0];
 	*Pin2_Mode=inpacket[1];
 	*Pin3_Mode=inpacket[2];
