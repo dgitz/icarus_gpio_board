@@ -1,49 +1,13 @@
 /***************AUTO-GENERATED.  DO NOT EDIT********************/
-/***Created on:2016-08-25 17:19:30.450613***/
+/***Created on:2016-09-26 18:15:26.802366***/
 /***Target: Parallax Propeller ***/
 #include "serialmessage.h"
-int encode_FirmwareVersionSerial(int* outbuffer,int* length,char MajorRelease,char MinorRelease,char BuildNumber)
-{
-	int byte_counter=0;
-	outbuffer[byte_counter++] = 0xAB;
-	outbuffer[byte_counter++] = 0x10;
-	outbuffer[byte_counter++] = 8;
-	outbuffer[byte_counter++] = MajorRelease;
-	outbuffer[byte_counter++] = MinorRelease;
-	outbuffer[byte_counter++] = BuildNumber;
-	outbuffer[byte_counter++] = 0;
-	outbuffer[byte_counter++] = 0;
-	outbuffer[byte_counter++] = 0;
-	outbuffer[byte_counter++] = 0;
-	outbuffer[byte_counter++] = 0;
-	int checksum = 0;
-	for(int i = 3; i < (3+8);i++)
-	{
-		checksum ^= outbuffer[i];
-	}
-	outbuffer[byte_counter] = checksum;
-	length[0] = 3+8+1;
-	return 1;
-}
-int decode_FirmwareVersionSerial(int* inpacket,int length,int checksum,char* MajorRelease,char* MinorRelease,char* BuildNumber)
-{
-	int computed_checksum = 0;
-	for(int i = 0; i < length; i++)
-	{
-		computed_checksum ^= inpacket[i];
-	}
-	if(computed_checksum != checksum) { return -1; }
-	*MajorRelease=inpacket[0];
-	*MinorRelease=inpacket[1];
-	*BuildNumber=inpacket[2];
-	return 1;
-}
 int encode_DiagnosticSerial(int* outbuffer,int* length,char System,char SubSystem,char Component,char Diagnostic_Type,char Level,char Diagnostic_Message)
 {
 	int byte_counter=0;
 	outbuffer[byte_counter++] = 0xAB;
 	outbuffer[byte_counter++] = 0x12;
-	outbuffer[byte_counter++] = 6;
+	outbuffer[byte_counter++] = 8;
 	outbuffer[byte_counter++] = System;
 	outbuffer[byte_counter++] = SubSystem;
 	outbuffer[byte_counter++] = Component;
@@ -53,7 +17,7 @@ int encode_DiagnosticSerial(int* outbuffer,int* length,char System,char SubSyste
 	outbuffer[byte_counter++] = 0;
 	outbuffer[byte_counter++] = 0;
 	int checksum = 0;
-	for(int i = 3; i < (3+6);i++)
+	for(int i = 3; i < (3+8);i++)
 	{
 		checksum ^= outbuffer[i];
 	}
@@ -138,7 +102,30 @@ int decode_Configure_DIO_PortASerial(int* inpacket,int length,int checksum,char*
 	*Pin8_Mode=inpacket[7];
 	return 1;
 }
-int decode_GPIO_Board_ModeSerial(int* inpacket,int length,int checksum,char* Mode)
+int encode_ModeSerial(int* outbuffer,int* length,char Mode)
+{
+	int byte_counter=0;
+	outbuffer[byte_counter++] = 0xAB;
+	outbuffer[byte_counter++] = 0x17;
+	outbuffer[byte_counter++] = 8;
+	outbuffer[byte_counter++] = Mode;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	int checksum = 0;
+	for(int i = 3; i < (3+8);i++)
+	{
+		checksum ^= outbuffer[i];
+	}
+	outbuffer[byte_counter] = checksum;
+	length[0] = 3+8+1;
+	return 1;
+}
+int decode_ModeSerial(int* inpacket,int length,int checksum,char* Mode)
 {
 	int computed_checksum = 0;
 	for(int i = 0; i < length; i++)
@@ -302,6 +289,29 @@ int encode_Get_DIO_PortBSerial(int* outbuffer,int* length,char Pin1_Value,char P
 	outbuffer[byte_counter++] = Pin6_Value;
 	outbuffer[byte_counter++] = Pin7_Value;
 	outbuffer[byte_counter++] = Pin8_Value;
+	int checksum = 0;
+	for(int i = 3; i < (3+8);i++)
+	{
+		checksum ^= outbuffer[i];
+	}
+	outbuffer[byte_counter] = checksum;
+	length[0] = 3+8+1;
+	return 1;
+}
+int encode_FirmwareVersionSerial(int* outbuffer,int* length,char majorVersion,char minorVersion,char buildNumber)
+{
+	int byte_counter=0;
+	outbuffer[byte_counter++] = 0xAB;
+	outbuffer[byte_counter++] = 0x25;
+	outbuffer[byte_counter++] = 8;
+	outbuffer[byte_counter++] = majorVersion;
+	outbuffer[byte_counter++] = minorVersion;
+	outbuffer[byte_counter++] = buildNumber;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
+	outbuffer[byte_counter++] = 0;
 	int checksum = 0;
 	for(int i = 3; i < (3+8);i++)
 	{

@@ -1,6 +1,7 @@
 #ifndef __DEFINITIONS_INCLUDED__   
 #define __DEFINITIONS_INCLUDED__
 
+#define RESOURCE_ID 0xAB11  //Should be the same as UDP_Resource_ID
 #define DIAGNOSTIC_ID 0xAB12  //Should be the same as UDP_Diagnostic_ID
 #define DEVICE_ID 0xAB13 //Should be the same as UDP_Device_ID
 
@@ -90,10 +91,10 @@
 #define PINMODE_NOCHANGE 255
 
 //GPIO Board Mode Definitions
-#define GPIOBOARD_MODE_UNDEFINED 0
-#define GPIOBOARD_MODE_INITIALIZING 1
-#define GPIOBOARD_MODE_START 2
-#define GPIOBOARD_MODE_RUNNING 3
-#define GPIOBOARD_MODE_STOP 4
-#define GPIOBOARD_MODE_RESET 255
+#define GPIO_MODE_UNDEFINED 0
+#define GPIO_MODE_BOOT 1
+#define GPIO_MODE_INITIALIZING 2
+#define GPIO_MODE_INITIALIZED 3
+#define GPIO_MODE_RUNNING 4
+#define GPIO_MODE_STOPPED 5
 #endif
