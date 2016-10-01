@@ -130,23 +130,24 @@ void run_mediumrate_code() //10 Hz
 {
   if(input(STATUS_LED) == 1){ low(STATUS_LED); }
   else { high(STATUS_LED); }
+  /*printf("0: mode: %d number: %d value: %d\n",
+    DIO_PortA.Pin_Mode[0],
+    DIO_PortA.Pin_Number[0],
+    DIO_PortA.Pin_Value[0]);
+    */
   
 }  
 void run_slowrate_code() //1 Hz
 {
+  /*
   printf("Failed Checksum: %d Passed Checksum: %d\n",checksum_failed_counter,checksum_passed_counter);
   printf("Received Config DIO PortA (0xAB16) %d times.\n",Receive_Configure_DIO_PortA_Counter);
   printf("Received Config DIO PortB (0xAB21) %d times.\n",Receive_Configure_DIO_PortB_Counter);
   printf("Received Node Mode (0xAB17) %d times.\n",Receive_BoardMode_Counter);
+  printf("Received Set DIO PortA (0x23) %d times.\n",Receive_Set_DIO_PortA_Counter);
   printf("Send Board Mode (0xAB17) %d times.\n",Send_BoardMode_Counter);
-  /*
-  printf
-  volatile long Receive_Configure_DIO_PortA_Counter = 0;
-volatile long Receive_Configure_DIO_PortB_Counter = 0;
-volatile long Receive_BoardMode_Counter = 0;
-volatile long Receive_Set_DIO_PortA_Counter = 0;
-volatile long Receive_Set_DIO_PortB_Counter = 0;
-   **/
+  */
+
   int out_buffer[12];
   int length[1];
   Diagnostic_Type = COMMUNICATIONS;
@@ -178,7 +179,7 @@ volatile long Receive_Set_DIO_PortB_Counter = 0;
 int main()
 {
   printf("Mode: %d\n",board_mode);
-  //simpleterm_close();
+  simpleterm_close();
   board_mode = GPIO_MODE_BOOT;
   initialized = 0;
   //display_firmware();
@@ -214,7 +215,7 @@ int main()
     }
     if(mediumrate_counter >= 100) //10 Hz
     {
-      printf("Board Mode: %d Node Mode: %d\n",board_mode,node_mode);
+      //printf("Board Mode: %d Node Mode: %d\n",board_mode,node_mode);
       mediumrate_counter = 0;
       run_mediumrate_code();
     }
@@ -358,7 +359,7 @@ void run_receive_master_cog()
   int message_checksum;
   int computed_checksum;
   int message_length;
-  //simpleterm_open();
+  simpleterm_open();
   while(1)
   {
     char c;
@@ -370,7 +371,7 @@ void run_receive_master_cog()
       message_buffer[i] = fdserial_rxChar(fd_device);
     }   
     message_checksum = fdserial_rxChar(fd_device);
-    //printf("Got: c: %d ",c);
+     
    /* for(int i = 0; i < message_length;i++)
     {
       printf(" i: %d b: %d",i,message_buffer[i]);
@@ -383,6 +384,10 @@ void run_receive_master_cog()
       message_type = c;
       char value1,value2,value3,value4,value5,value6,value7,value8;
       status = decode_Configure_DIO_PortASerial(message_buffer,message_length,message_checksum,&value1,&value2,&value3,&value4,&value5,&value6,&value7,&value8);
+      for(int i = 0; i < message_length;i++)
+      {
+        printf("i: %d b: %d\n",i,message_buffer[i]);
+      }  
       if(status == 1)
       {
         Receive_Configure_DIO_PortA_Counter++;
@@ -473,6 +478,8 @@ void run_receive_master_cog()
       status = decode_Set_DIO_PortASerial(message_buffer,message_length,message_checksum,&value1,&value2,&value3,&value4,&value5,&value6,&value7,&value8);
       if(status == 1)
       {
+        printf("Set Pin 0 to: %d\n",value1);
+        Receive_Set_DIO_PortA_Counter++;
         checksum_passed_counter++;
         if((DIO_PortA.Pin_Mode[0] == PINMODE_DIGITAL_OUTPUT) || (DIO_PortA.Pin_Mode[0] == PINMODE_PWM_OUTPUT)) {DIO_PortA.Pin_Value[0] = value1; }
         if((DIO_PortA.Pin_Mode[1] == PINMODE_DIGITAL_OUTPUT) || (DIO_PortA.Pin_Mode[1] == PINMODE_PWM_OUTPUT)) {DIO_PortA.Pin_Value[1] = value2; }
