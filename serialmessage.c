@@ -1,5 +1,5 @@
 /***************AUTO-GENERATED.  DO NOT EDIT********************/
-/***Created on:2016-09-26 18:15:26.802366***/
+/***Created on:2016-11-08 17:54:20.081745***/
 /***Target: Parallax Propeller ***/
 #include "serialmessage.h"
 int encode_DiagnosticSerial(int* outbuffer,int* length,char System,char SubSystem,char Component,char Diagnostic_Type,char Level,char Diagnostic_Message)
@@ -319,5 +319,52 @@ int encode_FirmwareVersionSerial(int* outbuffer,int* length,char majorVersion,ch
 	}
 	outbuffer[byte_counter] = checksum;
 	length[0] = 3+8+1;
+	return 1;
+}
+int decode_StopMovementSerial(int* inpacket,int length,int checksum,char* Level)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*Level=inpacket[0];
+	return 1;
+}
+int decode_Setup_ControlGroupSerial(int* inpacket,int length,int checksum,char* ID,char* Mode,char* Input_Port,char* Input_PinMode,char* Input_PinNumber,char* Output_Port,char* Output_PinMode,char* Output_PinNUmber)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*ID=inpacket[0];
+	*Mode=inpacket[1];
+	*Input_Port=inpacket[2];
+	*Input_PinMode=inpacket[3];
+	*Input_PinNumber=inpacket[4];
+	*Output_Port=inpacket[5];
+	*Output_PinMode=inpacket[6];
+	*Output_PinNUmber=inpacket[7];
+	return 1;
+}
+int decode_Tune_ControlGroupSerial(int* inpacket,int length,int checksum,char* ID,char* Mode,int* Proportional_Gain,int* Integral_Gain,int* Derivative_Gain)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*ID=inpacket[0];
+	*Mode=inpacket[1];
+	int v_Proportional_Gain1=inpacket[2]<<8;
+	*Proportional_Gain=inpacket[3] + v_Proportional_Gain1;
+	int v_Integral_Gain1=inpacket[4]<<8;
+	*Integral_Gain=inpacket[5] + v_Integral_Gain1;
+	int v_Derivative_Gain1=inpacket[6]<<8;
+	*Derivative_Gain=inpacket[7] + v_Derivative_Gain1;
 	return 1;
 }
