@@ -1,5 +1,5 @@
 /***************AUTO-GENERATED.  DO NOT EDIT********************/
-/***Created on:2016-11-08 17:54:20.081745***/
+/***Created on:2016-11-26 08:18:18.895650***/
 /***Target: Parallax Propeller ***/
 #include "serialmessage.h"
 int encode_DiagnosticSerial(int* outbuffer,int* length,char System,char SubSystem,char Component,char Diagnostic_Type,char Level,char Diagnostic_Message)
@@ -321,7 +321,7 @@ int encode_FirmwareVersionSerial(int* outbuffer,int* length,char majorVersion,ch
 	length[0] = 3+8+1;
 	return 1;
 }
-int decode_StopMovementSerial(int* inpacket,int length,int checksum,char* Level)
+int decode_Arm_CommandSerial(int* inpacket,int length,int checksum,char* Command)
 {
 	int computed_checksum = 0;
 	for(int i = 0; i < length; i++)
@@ -329,7 +329,7 @@ int decode_StopMovementSerial(int* inpacket,int length,int checksum,char* Level)
 		computed_checksum ^= inpacket[i];
 	}
 	if(computed_checksum != checksum) { return -1; }
-	*Level=inpacket[0];
+	*Command=inpacket[0];
 	return 1;
 }
 int decode_Setup_ControlGroupSerial(int* inpacket,int length,int checksum,char* ID,char* Mode,char* Input_Port,char* Input_PinMode,char* Input_PinNumber,char* Output_Port,char* Output_PinMode,char* Output_PinNUmber)
@@ -366,5 +366,52 @@ int decode_Tune_ControlGroupSerial(int* inpacket,int length,int checksum,char* I
 	*Integral_Gain=inpacket[5] + v_Integral_Gain1;
 	int v_Derivative_Gain1=inpacket[6]<<8;
 	*Derivative_Gain=inpacket[7] + v_Derivative_Gain1;
+	return 1;
+}
+int decode_Arm_StatusSerial(int* inpacket,int length,int checksum,char* Status)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*Status=inpacket[0];
+	return 1;
+}
+int decode_Set_DIO_PortA_DefaultValueSerial(int* inpacket,int length,int checksum,char* Pin1_Value,char* Pin2_Value,char* Pin3_Value,char* Pin4_Value,char* Pin5_Value,char* Pin6_Value,char* Pin7_Value,char* Pin8_Value)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*Pin1_Value=inpacket[0];
+	*Pin2_Value=inpacket[1];
+	*Pin3_Value=inpacket[2];
+	*Pin4_Value=inpacket[3];
+	*Pin5_Value=inpacket[4];
+	*Pin6_Value=inpacket[5];
+	*Pin7_Value=inpacket[6];
+	*Pin8_Value=inpacket[7];
+	return 1;
+}
+int decode_Set_DIO_PortB_DefaultValueSerial(int* inpacket,int length,int checksum,char* Pin1_Value,char* Pin2_Value,char* Pin3_Value,char* Pin4_Value,char* Pin5_Value,char* Pin6_Value,char* Pin7_Value,char* Pin8_Value)
+{
+	int computed_checksum = 0;
+	for(int i = 0; i < length; i++)
+	{
+		computed_checksum ^= inpacket[i];
+	}
+	if(computed_checksum != checksum) { return -1; }
+	*Pin1_Value=inpacket[0];
+	*Pin2_Value=inpacket[1];
+	*Pin3_Value=inpacket[2];
+	*Pin4_Value=inpacket[3];
+	*Pin5_Value=inpacket[4];
+	*Pin6_Value=inpacket[5];
+	*Pin7_Value=inpacket[6];
+	*Pin8_Value=inpacket[7];
 	return 1;
 }

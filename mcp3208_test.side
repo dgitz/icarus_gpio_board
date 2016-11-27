@@ -1,9 +1,4 @@
-gpioboard.c
-serialmessage.c
-serialmessage.h
-mcp3208.h
-Definitions.h
-eROS_Definitions.h
+mcp3208_test.c
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os
@@ -11,4 +6,4 @@ eROS_Definitions.h
 >-fno-exceptions
 >defs::-std=c99
 >-lm
->BOARD::GENERIC
+>BOARD::ACTIVITYBOARD

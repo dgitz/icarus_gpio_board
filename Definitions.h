@@ -2,9 +2,6 @@
 #define __DEFINITIONS_INCLUDED__
 #include "eROS_Definitions.h"
 //Armed State Definitions
-#define ARMED 1
-#define DISARMED 0
-
 
 //Gear Definitions
 #define GEAR_FORWARD 1
@@ -16,10 +13,14 @@
 #define PINMODE_DIGITAL_OUTPUT 1
 #define PINMODE_DIGITAL_INPUT 2
 #define PINMODE_ANALOG_INPUT 3
-#define PINMODE_FORCESENSOR_INPUT 4
+#define PINMODE_FORCESENSOR_INPUT 4  //icarus_rover_v2::pin Value will be in units: grams
 #define PINMODE_ULTRASONIC_INPUT 5
 #define PINMODE_QUADRATUREENCODER_INPUT 6
 #define PINMODE_PWM_OUTPUT 7
+#define PINMODE_DIGITAL_OUTPUT_NON_ACTUATOR 8
+#define PINMODE_PWM_OUTPUT_NON_ACTUATOR 9
+#define PINMODE_ARMCOMMAND_OUTPUT 253
+#define PINMODE_ARMCOMMAND_INPUT 254
 #define PINMODE_NOCHANGE 255
 
 //GPIO Board Mode Definitions
@@ -29,4 +30,8 @@
 #define GPIO_MODE_INITIALIZED 3
 #define GPIO_MODE_RUNNING 4
 #define GPIO_MODE_STOPPED 5
+
+//Control Group Definitions
+#define CONTROLGROUP_MODE_UNDEFINED 0
+#define GPIO_PORT_UNDEFINED 0
 #endif
